@@ -1,11 +1,18 @@
-
 "use client";
-import { BadgeCheck, ChevronRight, LogOut } from "lucide-react";
+
+import {
+  BadgeCheck,
+  FilePlus2,
+  Info,
+  LogOut,
+  PackagePlus,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { navGroups } from "@/components/layout/nav-config";
+import DashboardModuleGrid from "@/components/dashboard/DashboardModuleGrid";
 import Spinner from "@/components/ui/Spinner";
 import { useAuth } from "@/hooks/useAuth";
+
 export default function DashboardPage() {
   const { user, logout } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -22,71 +29,72 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl bg-linear-to-br from-slate-950 via-slate-900 to-slate-800 min-h-screen p-6">
-      {/* Header Section */}
-      <div className="rounded-xl bg-slate-900/40 backdrop-blur-md px-6 py-4 flex items-center justify-between shadow-lg">
-        <div className="flex items-center gap-3">
-          <h1 className=" rounded-md px-0.5 text-[#d9c0a1]  font-extrabold  text-lg sm:text-xl drop-shadow-md">
-            Welcome, {name}
-          </h1>
-
-          {/* Verified Badge */}
-          {user?.isemailVerified && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-              <BadgeCheck className="h-3.5 w-3.5" /> Verified
-            </span>
-          )}
-        </div>
-
-        {/* Logout Button */}
-        {user && (
-          <button
-            type="button"
-            onClick={handleLogout}
-            disabled={loggingOut}
-            className="inline-flex items-center gap-2 rounded-lg bg-linear-to-r from-red-500 to-pink-500 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
-          >
-            {loggingOut ? <Spinner className="h-4 w-4" /> : <LogOut className="h-4 w-4" />}
-            Logout
-          </button>
-        )}
-      </div>
-
-      {/* Subtext */}
-      <p className="mt-2 text-sm text-slate-400">Jump into any module to get started.</p>
-
-      {/* Navigation Grid */}
-      <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-        {navGroups.map((group) => {
-          const Icon = group.icon;
-          return (
-            <section
-              key={group.label}
-              className="rounded-xl border border-slate-800 bg-slate-900 p-5 transition hover:shadow-xl hover:border-blue-500/40"
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-r from-blue-600 to-indigo-600 text-white shadow-md">
-                  <Icon className="h-5 w-5" />
+    <div className="mx-auto max-w-7xl space-y-6">
+      {/* Dashboard Command Header */}
+      <div className="rounded-xl border border-slate-800 bg-slate-900/90 p-5 sm:p-6 shadow-xs">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                Welcome, {name}
+              </h1>
+              {user?.isemailVerified && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+                  <BadgeCheck className="h-3.5 w-3.5" />
+                  Verified
                 </span>
-                <h2 className="font-semibold text-slate-200">{group.label}</h2>
-              </div>
-              <ul className="mt-4 space-y-1">
-                {group.children.map((child) => (
-                  <li key={child.href}>
-                    <Link
-                      href={child.href}
-                      className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white hover:border-l-4 hover:border-blue-500 transition"
-                    >
-                      {child.label}
-                      <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-blue-400" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          );
-        })}
+              )}
+            </div>
+            <p className="text-sm text-slate-400">
+              Overview of production plans, equipment, inventory, and quality assurance.
+            </p>
+          </div>
+
+          {/* Quick Action Chips & Logout */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/production/work-orders"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-medium text-white shadow-xs transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            >
+              <FilePlus2 className="h-3.5 w-3.5" />
+              <span>Work Orders</span>
+            </Link>
+
+            <Link
+              href="/products/add"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-medium text-slate-200 transition hover:bg-slate-700 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+            >
+              <PackagePlus className="h-3.5 w-3.5 text-blue-400" />
+              <span>New Product</span>
+            </Link>
+
+            <Link
+              href="/info"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-400 transition hover:border-slate-700 hover:bg-slate-800 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+              title="System Documentation"
+            >
+              <Info className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Info</span>
+            </Link>
+
+            {user && (
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                title="Sign out"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-400 transition hover:border-slate-700 hover:bg-slate-800 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 disabled:opacity-50"
+              >
+                {loggingOut ? <Spinner className="h-3.5 w-3.5" /> : <LogOut className="h-3.5 w-3.5" />}
+                <span className="hidden sm:inline">Sign out</span>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Categorized Industrial Module Grid */}
+      <DashboardModuleGrid />
     </div>
   );
 }
