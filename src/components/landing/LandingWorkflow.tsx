@@ -20,7 +20,7 @@ const stages = [
     description:
       "Construct multi-level Bills of Materials (BOM), calculate material ratios, register verified suppliers, and issue automated replenishment purchase orders.",
     deliverable: "Verified BOM & Supplier Contracts",
-    badgeColor: "border-blue-500/30 bg-blue-500/10 text-blue-400",
+    badgeColor: "border-blue-500/30 bg-blue-500/10 text-blue-300",
     stats: "18 Sub-Assemblies • 100% Traceability",
   },
   {
@@ -32,7 +32,7 @@ const stages = [
     description:
       "Build high-level production plans, sequence target completion windows, and convert forecasted demands into executable station work orders.",
     deliverable: "Released Work Orders & Line Schedules",
-    badgeColor: "border-indigo-500/30 bg-indigo-500/10 text-indigo-400",
+    badgeColor: "border-blue-500/30 bg-blue-500/10 text-blue-300",
     stats: "Capacity Allocated • Batch Priorities Set",
   },
   {
@@ -42,9 +42,9 @@ const stages = [
     subtitle: "Real-time dispatch and station monitoring",
     icon: ClipboardList,
     description:
-      "Route operator jobs through active machine cells. Monitor live cycle telemetry, track completed unit counts, and instantly log scrap scrap variances.",
+      "Route operator jobs through active machine cells. Monitor live cycle telemetry, track completed unit counts, and instantly log scrap variances.",
     deliverable: "Live Batch Yields & Scrap Tally",
-    badgeColor: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+    badgeColor: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
     stats: "99.4% Batch Yield • 12.4k RPM Monitored",
   },
   {
@@ -56,7 +56,7 @@ const stages = [
     description:
       "Verify parts against micron-level CMM optical tolerances. Quarantined defect root causes feed back directly into BOM and machine maintenance revisions.",
     deliverable: "ISO-Grade Audit Trail & Yield Feedback",
-    badgeColor: "border-sky-500/30 bg-sky-500/10 text-sky-400",
+    badgeColor: "border-amber-500/30 bg-amber-500/10 text-amber-300",
     stats: "±0.005mm Tolerance • Feeds Back to Phase 01",
   },
 ];
@@ -65,15 +65,15 @@ export default function LandingWorkflow() {
   const [activeStage, setActiveStage] = useState(0);
 
   return (
-    <section id="workflow" className="relative py-16 md:py-24 border-t border-slate-800/80 bg-slate-950">
+    <section id="workflow" className="relative py-16 md:py-20 border-t border-slate-800 bg-[#090d16]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/80 px-3.5 py-1 text-xs font-mono text-blue-400">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-[#0d1320] px-3.5 py-1 text-xs font-mono text-blue-400">
             <RefreshCw className="h-3 w-3 animate-spin motion-reduce:animate-none" />
             <span>CLOSED-LOOP MANUFACTURING PIPELINE</span>
           </div>
-          <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-white sm:text-4xl">
+          <h2 className="mt-3.5 text-2xl font-extrabold tracking-tight text-white sm:text-4xl">
             From raw ingot to finished delivery.
           </h2>
           <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed">
@@ -83,7 +83,7 @@ export default function LandingWorkflow() {
         </div>
 
         {/* Interactive Cycle Stage Selector Bar */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           {stages.map((stage, idx) => {
             const Icon = stage.icon;
             const isSelected = activeStage === idx;
@@ -94,17 +94,17 @@ export default function LandingWorkflow() {
                 onClick={() => setActiveStage(idx)}
                 className={`text-left p-4 rounded-xl border transition-all duration-150 ${
                   isSelected
-                    ? "border-blue-500 bg-slate-900/90 shadow-lg shadow-blue-500/10"
-                    : "border-slate-800/80 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/70"
+                    ? "border-blue-500 bg-[#162136] shadow-sm"
+                    : "border-slate-800 bg-[#0c111e] hover:border-slate-700 hover:bg-[#121826]"
                 }`}
               >
                 <div className="flex items-center justify-between font-mono text-xs">
-                  <span className={isSelected ? "text-blue-400 font-bold" : "text-slate-500"}>
+                  <span className={isSelected ? "text-blue-300 font-bold" : "text-slate-400"}>
                     {stage.step}
                   </span>
-                  <Icon className={`h-4 w-4 ${isSelected ? "text-blue-400" : "text-slate-500"}`} />
+                  <Icon className={`h-4 w-4 ${isSelected ? "text-blue-300" : "text-slate-400"}`} />
                 </div>
-                <p className="mt-2 text-sm font-semibold text-slate-100 truncate">
+                <p className="mt-2 text-sm font-bold text-white truncate">
                   {stage.title}
                 </p>
                 <span className="mt-1 block text-[11px] text-slate-400 truncate">
@@ -116,26 +116,26 @@ export default function LandingWorkflow() {
         </div>
 
         {/* Detailed Stage Deep-Dive Display Card */}
-        <div className="bento-card p-6 sm:p-10 bg-slate-900/80 border-slate-800 shadow-2xl">
+        <div className="rounded-xl border border-slate-800 bg-[#0c111e] p-6 sm:p-8 shadow-xl">
           <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
             {/* Left Col (7 cols): Stage Overview & Description */}
             <div className="lg:col-span-7">
-              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono font-medium ${stages[activeStage].badgeColor}`}>
+              <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs font-mono font-medium ${stages[activeStage].badgeColor}`}>
                 {stages[activeStage].phase}
               </span>
 
-              <h3 className="mt-4 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              <h3 className="mt-3 text-xl sm:text-2xl font-bold tracking-tight text-white">
                 {stages[activeStage].title}
               </h3>
 
-              <p className="mt-4 text-sm sm:text-base leading-relaxed text-slate-300">
+              <p className="mt-3 text-sm sm:text-base leading-relaxed text-slate-300">
                 {stages[activeStage].description}
               </p>
 
-              <div className="mt-6 flex flex-wrap items-center gap-4 text-xs font-mono text-slate-400 border-t border-slate-800/80 pt-4">
+              <div className="mt-5 flex flex-wrap items-center gap-4 text-xs font-mono text-slate-300 border-t border-slate-800 pt-4">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                  <span className="text-slate-200">{stages[activeStage].deliverable}</span>
+                  <span className="text-white font-medium">{stages[activeStage].deliverable}</span>
                 </div>
                 <span>•</span>
                 <span className="text-blue-300">{stages[activeStage].stats}</span>
@@ -144,30 +144,30 @@ export default function LandingWorkflow() {
 
             {/* Right Col (5 cols): Interactive Closed-Loop Visual Matrix */}
             <div className="lg:col-span-5">
-              <div className="rounded-xl border border-slate-800 bg-slate-950 p-5 font-mono text-xs space-y-3">
-                <div className="flex items-center justify-between text-slate-400 border-b border-slate-800 pb-2">
+              <div className="rounded-xl border border-slate-800 bg-[#080d17] p-5 font-mono text-xs space-y-3">
+                <div className="flex items-center justify-between text-slate-300 border-b border-slate-800 pb-2">
                   <span>STAGE TELEMETRY // REAL-TIME SYNC</span>
-                  <span className="text-emerald-400">STATUS: ACTIVE</span>
+                  <span className="text-emerald-400 font-bold">ACTIVE</span>
                 </div>
 
                 <div className="space-y-2 text-xs">
-                  <div className="flex justify-between items-center rounded-lg bg-slate-900/60 p-2.5 border border-slate-800/80">
-                    <span className="text-slate-400">Current Phase</span>
-                    <span className="font-semibold text-slate-100">{stages[activeStage].step} of 04</span>
+                  <div className="flex justify-between items-center rounded-lg bg-[#0e1422] p-2.5 border border-slate-800">
+                    <span className="text-slate-300">Current Phase</span>
+                    <span className="font-bold text-white">{stages[activeStage].step} of 04</span>
                   </div>
-                  <div className="flex justify-between items-center rounded-lg bg-slate-900/60 p-2.5 border border-slate-800/80">
-                    <span className="text-slate-400">Feedback Continuity</span>
-                    <span className="text-blue-400 font-semibold">Closed-Loop Verified</span>
+                  <div className="flex justify-between items-center rounded-lg bg-[#0e1422] p-2.5 border border-slate-800">
+                    <span className="text-slate-300">Feedback Continuity</span>
+                    <span className="text-blue-300 font-bold">Closed-Loop Verified</span>
                   </div>
-                  <div className="flex justify-between items-center rounded-lg bg-slate-900/60 p-2.5 border border-slate-800/80">
-                    <span className="text-slate-400">Audit Compliance</span>
-                    <span className="text-emerald-400 font-semibold">ISO-9001 Schema Ready</span>
+                  <div className="flex justify-between items-center rounded-lg bg-[#0e1422] p-2.5 border border-slate-800">
+                    <span className="text-slate-300">Audit Compliance</span>
+                    <span className="text-emerald-400 font-bold">ISO-9001 Schema Ready</span>
                   </div>
                 </div>
 
                 {/* Progress bar showing stage position */}
                 <div className="pt-2">
-                  <div className="flex justify-between text-[10px] text-slate-500 mb-1">
+                  <div className="flex justify-between text-[10px] text-slate-400 mb-1">
                     <span>Sourcing (01)</span>
                     <span>Planning (02)</span>
                     <span>Execution (03)</span>
@@ -175,7 +175,7 @@ export default function LandingWorkflow() {
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-300"
+                      className="h-full bg-blue-600 rounded-full transition-all duration-300"
                       style={{ width: `${((activeStage + 1) / 4) * 100}%` }}
                     />
                   </div>

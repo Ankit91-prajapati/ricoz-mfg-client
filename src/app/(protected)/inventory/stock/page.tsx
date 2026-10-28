@@ -1,6 +1,6 @@
 "use client";
 
-import { PackageOpen, Pencil, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
+import { Boxes, PackageOpen, Pencil, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import InventoryForm, { emptyInventoryForm, inventoryToForm } from "@/components/inventory/InventoryForm";
@@ -53,7 +53,6 @@ export default function StockPage() {
     );
   }, [stock.items, search, levelFilter]);
 
-  // Inventory.product is unique, so only offer active products that don't have a record yet.
   const availableProducts = useMemo(() => {
     const used = new Set(stock.items.map((i) => i.product?._id));
     return products.items.filter((p) => p.isActive && !used.has(p._id));
@@ -65,7 +64,6 @@ export default function StockPage() {
     const editing = modal !== null && modal !== "new" ? modal : null;
     try {
       if (editing) {
-        // product can't change on an existing record, so don't send it
         const { quantity, reservedQuantity, reorderLevel } = values;
         await inventoryService.update(editing._id, { quantity, reservedQuantity, reorderLevel });
         toast.success("Stock updated");
@@ -74,7 +72,7 @@ export default function StockPage() {
         toast.success("Stock record created");
       }
       setModal(null);
-      stock.reload(); // reload so the product comes back populated
+      stock.reload();
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not save stock."));
     }
@@ -98,97 +96,160 @@ export default function StockPage() {
   const productLabel = (i: InventoryItem) => (i.product ? `${i.product.code} — ${i.product.name}` : "Deleted product");
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="ui-page-enter mx-auto max-w-7xl space-y-6">
+      {/* Header Deck */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Stock</h1>
-          <p className="mt-1 text-sm text-slate-400">
-            {stock.loading ? "Loading…" : `${filtered.length} of ${stock.items.length} items`}
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-700 bg-[#121826] text-blue-400">
+              <Boxes className="h-4 w-4" />
+            </span>
+            <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">
+              Warehouse Logistics
+            </p>
+          </div>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            Inventory & Material Stock
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-300">
+            {stock.loading ? "Loading inventory…" : `${filtered.length} of ${stock.items.length} items tracked`}
           </p>
         </div>
-        <div className="flex gap-3">
-          <button onClick={stock.reload} aria-label="Refresh"
-            className="rounded-lg border border-slate-700 p-2.5 text-slate-300 hover:bg-slate-800">
+
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={stock.reload}
+            disabled={stock.loading}
+            aria-label="Refresh stock"
+            title="Refresh stock"
+            className="rounded-lg border border-slate-700 bg-[#121826] p-2.5 text-slate-200 transition hover:border-slate-600 hover:bg-[#192235] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50"
+          >
             <RefreshCw className={`h-4 w-4 ${stock.loading ? "animate-spin" : ""}`} />
           </button>
-          <button onClick={() => setModal("new")} disabled={!ready}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-60">
-            <Plus className="h-4 w-4" /> Add Stock
+          <button
+            onClick={() => setModal("new")}
+            disabled={!ready}
+            className="inline-flex min-h-9.5 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-60"
+          >
+            <Plus className="h-4 w-4" /> Add Stock Item
           </button>
         </div>
       </div>
 
-      <div className="mt-6">
-        <StatusFilterCards options={STOCK_LEVELS} counts={counts} active={levelFilter} onChange={setLevelFilter} />
+      {/* Filter Cards */}
+      <StatusFilterCards options={STOCK_LEVELS} counts={counts} active={levelFilter} onChange={setLevelFilter} />
+
+      {/* Search Input */}
+      <div className="rounded-xl border border-slate-800 bg-[#0c111e] p-4">
+        <Input
+          label=""
+          aria-label="Search stock"
+          icon={Search}
+          placeholder="Search by product name or SKU code…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
-      <div className="mt-4">
-        <Input label="" aria-label="Search stock" icon={Search} placeholder="Search by product name or code…"
-          value={search} onChange={(e) => setSearch(e.target.value)} />
-      </div>
-
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+      {/* Stock Data Table */}
+      <div className="overflow-hidden rounded-xl border border-slate-800 bg-[#0c111e] shadow-xl">
         {stock.loading ? (
-          <div className="flex justify-center p-16"><Spinner className="h-7 w-7" /></div>
+          <div className="flex flex-col items-center justify-center p-16 text-slate-300">
+            <Spinner className="h-7 w-7 text-blue-400" />
+            <p className="mt-3 text-xs font-medium">Loading inventory balances…</p>
+          </div>
         ) : stock.error ? (
           <div className="p-12 text-center">
-            <p className="text-red-400">{stock.error}</p>
-            <button onClick={stock.reload} className="mt-3 text-sm font-medium text-blue-400 hover:text-blue-300">Try again</button>
+            <p className="text-sm font-medium text-rose-400">{stock.error}</p>
+            <button
+              onClick={stock.reload}
+              className="mt-3 text-xs font-semibold text-blue-400 underline hover:text-blue-300"
+            >
+              Retry loading
+            </button>
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center p-16 text-center">
-            <PackageOpen className="h-10 w-10 text-slate-600" />
-            <p className="mt-4 text-slate-300">{stock.items.length ? "No items match your filters." : "No stock records yet."}</p>
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-800 bg-[#080d17] text-slate-400">
+              <PackageOpen className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 text-sm font-semibold text-white">No stock records found</h3>
+            <p className="mt-1 text-xs text-slate-300">
+              {stock.items.length ? "No stock items match your search or filter." : "Start by registering inventory for your catalog products."}
+            </p>
             {!stock.items.length && ready && (
-              <button onClick={() => setModal("new")} className="mt-3 text-sm font-medium text-blue-400 hover:text-blue-300">
-                Add your first stock record
+              <button
+                onClick={() => setModal("new")}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-500"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add first item
               </button>
             )}
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-left text-sm">
-              <thead className="border-b border-slate-800 text-xs uppercase tracking-wider text-slate-400">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-slate-800 bg-[#080d17] text-xs font-semibold uppercase tracking-wider text-slate-300">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Product</th>
-                  <th className="px-5 py-3 text-right font-medium">On hand</th>
-                  <th className="px-5 py-3 text-right font-medium">Reserved</th>
-                  <th className="px-5 py-3 text-right font-medium">Available</th>
-                  <th className="px-5 py-3 text-right font-medium">Reorder at</th>
-                  <th className="px-5 py-3 font-medium">Level</th>
-                  <th className="px-5 py-3 text-right font-medium">Actions</th>
+                  <th className="px-5 py-3.5">Product SKU / Name</th>
+                  <th className="px-5 py-3.5 text-right">On Hand</th>
+                  <th className="px-5 py-3.5 text-right">Reserved</th>
+                  <th className="px-5 py-3.5 text-right">Available</th>
+                  <th className="px-5 py-3.5 text-right">Reorder Threshold</th>
+                  <th className="px-5 py-3.5">Stock Level</th>
+                  <th className="px-5 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-slate-800/80">
                 {filtered.map((i) => {
                   const available = getAvailable(i);
                   const unit = i.product?.unit ?? "";
-                  return (
-                    <tr key={i._id} className="hover:bg-slate-800/40">
+                  const productLabel = (i: InventoryItem) => (i.product ? `${i.product.code} — ${i.product.name}` : "Deleted product");
+
+  return (
+                    <tr key={i._id} className="ui-table-row">
                       <td className="px-5 py-3.5">
                         {i.product ? (
                           <>
-                            <p className="font-medium">{i.product.name}</p>
-                            <p className="font-mono text-xs text-slate-500">{i.product.code}</p>
+                            <p className="font-semibold text-white">{i.product.name}</p>
+                            <p className="font-mono text-xs text-blue-300">{i.product.code}</p>
                           </>
                         ) : (
-                          <span className="text-slate-500">Deleted product</span>
+                          <span className="text-slate-400 font-medium">Deleted product reference</span>
                         )}
                       </td>
-                      <td className="px-5 py-3.5 text-right tabular-nums">{fmt(i.quantity)} <span className="text-xs text-slate-500">{unit}</span></td>
-                      <td className="px-5 py-3.5 text-right tabular-nums text-slate-400">{fmt(i.reservedQuantity)}</td>
-                      <td className={`px-5 py-3.5 text-right font-medium tabular-nums ${available <= 0 ? "text-red-400" : ""}`}>{fmt(available)}</td>
-                      <td className="px-5 py-3.5 text-right tabular-nums text-slate-400">{fmt(i.reorderLevel)}</td>
-                      <td className="px-5 py-3.5"><Badge meta={findMeta(STOCK_LEVELS, getStockLevel(i))} /></td>
+                      <td className="px-5 py-3.5 text-right font-mono font-bold text-white">
+                        {fmt(i.quantity)} <span className="text-xs font-normal text-slate-300 font-sans">{unit}</span>
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-mono text-slate-300">
+                        {fmt(i.reservedQuantity)}
+                      </td>
+                      <td className={`px-5 py-3.5 text-right font-mono font-bold ${available <= 0 ? "text-rose-400" : "text-emerald-400"}`}>
+                        {fmt(available)}
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-mono text-slate-300">
+                        {fmt(i.reorderLevel)}
+                      </td>
                       <td className="px-5 py-3.5">
-                        <div className="flex justify-end gap-1">
-                          <button onClick={() => setModal(i)} aria-label="Edit stock"
-                            className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white">
-                            <Pencil className="h-4 w-4" />
+                        <Badge meta={findMeta(STOCK_LEVELS, getStockLevel(i))} />
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="flex justify-end gap-1.5">
+                          <button
+                            onClick={() => setModal(i)}
+                            aria-label="Edit stock"
+                            title="Edit stock"
+                            className="rounded-lg border border-slate-700 bg-[#121826] p-1.5 text-slate-300 transition hover:border-slate-600 hover:text-white"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => setToDelete(i)} aria-label="Delete stock record"
-                            className="rounded-lg p-2 text-slate-400 hover:bg-red-500/10 hover:text-red-400">
-                            <Trash2 className="h-4 w-4" />
+                          <button
+                            onClick={() => setToDelete(i)}
+                            aria-label="Delete stock record"
+                            title="Delete stock record"
+                            className="rounded-lg border border-slate-700 bg-[#121826] p-1.5 text-slate-300 transition hover:border-rose-600 hover:bg-rose-950/40 hover:text-rose-400"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </td>
@@ -201,8 +262,13 @@ export default function StockPage() {
         )}
       </div>
 
-      <Modal open={modal !== null} title={modal === "new" ? "Add Stock" : "Edit Stock"} onClose={() => setModal(null)}>
-        {modal !== null && (
+      {/* Modal */}
+      {modal && (
+        <Modal
+          open
+          title={modal === "new" ? "Add Stock Record" : `Edit Stock for ${modal.product?.name ?? "Product"}`}
+          onClose={() => setModal(null)}
+        >
           <InventoryForm
             key={modal === "new" ? "new" : modal._id}
             initial={modal === "new" ? emptyInventoryForm : inventoryToForm(modal)}
@@ -212,13 +278,15 @@ export default function StockPage() {
             onSubmit={handleSave}
             onCancel={() => setModal(null)}
           />
-        )}
-      </Modal>
+        </Modal>
+      )}
 
+      {/* Delete Dialog */}
       <ConfirmDialog
         open={Boolean(toDelete)}
-        title="Delete stock record?"
-        message={toDelete ? `The stock record for ${productLabel(toDelete)} will be permanently removed.` : ""}
+        title="Delete Stock Record"
+        message={`Are you sure you want to remove the inventory balance for ${toDelete?.product?.name ?? "this item"}?`}
+        confirmLabel="Confirm Deletion"
         loading={deleting}
         onConfirm={confirmDelete}
         onCancel={() => setToDelete(null)}

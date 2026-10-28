@@ -75,14 +75,14 @@ export default function InventoryForm({ initial, products = [], lockedProduct, s
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
       {lockedProduct ? (
         <div>
-          <p className="text-sm font-medium text-slate-300">Product</p>
-          <p className="mt-1.5 rounded-lg border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm text-slate-300">{lockedProduct}</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-slate-300">Product</p>
+          <p className="mt-1.5 rounded-lg border border-slate-700/80 bg-[#0d131f] px-3.5 py-2.5 text-sm font-medium text-slate-200">{lockedProduct}</p>
         </div>
       ) : (
         <>
           <ProductSelect products={products} value={form.product} onChange={(v) => update("product", v)} error={errors.product} />
           {products.length === 0 && (
-            <p className="-mt-2 text-xs text-amber-300">Every active product already has a stock record.</p>
+            <p className="-mt-2 text-xs font-medium text-amber-300">Every active product already has a stock record.</p>
           )}
         </>
       )}
@@ -95,9 +95,9 @@ export default function InventoryForm({ initial, products = [], lockedProduct, s
         <Input label="Reorder level" type="number" min={0} step="any" value={form.reorderLevel}
           onChange={(e) => update("reorderLevel", e.target.value)} error={errors.reorderLevel} />
       </div>
-      <p className="text-xs text-slate-500">Available = on hand − reserved. Stock shows as low when available drops to the reorder level.</p>
+      <p className="text-xs font-medium text-slate-300">Available = on hand − reserved. Stock shows as low when available drops to the reorder level.</p>
 
-      <div className="flex flex-col-reverse gap-3 border-t border-slate-800 pt-5 sm:flex-row sm:justify-end">
+      <div className="flex flex-col-reverse gap-3 border-t border-slate-800/80 pt-5 sm:flex-row sm:justify-end">
         <Button type="button" variant="outline" className="sm:w-auto sm:px-6" onClick={onCancel} disabled={submitting}>
           Cancel
         </Button>

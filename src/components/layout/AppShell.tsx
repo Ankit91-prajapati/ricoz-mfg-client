@@ -25,9 +25,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const breadcrumb = navItem
     ? `${navItem.group} / ${navItem.label}`
     : pathname === "/dashboard"
-    ? "Operations / Dashboard"
+    ? "Operations / Command Dashboard"
     : pathname === "/info"
-    ? "System / Information"
+    ? "System / Architecture & Info"
     : "Operations";
 
   const closeDrawer = useCallback(() => {
@@ -87,7 +87,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   }, [closeDrawer, drawerOpen]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-950">
+    <div className="flex h-screen overflow-hidden bg-[#090d16] text-slate-100">
       {/* Desktop Persistent Sidebar */}
       <div className="hidden lg:block shrink-0">
         <Sidebar />
@@ -103,7 +103,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           aria-label="Navigation drawer"
         >
           <div
-            className="absolute inset-0 bg-slate-950/80 transition-opacity"
+            className="absolute inset-0 bg-slate-950/80 backdrop-blur-xs transition-opacity"
             onClick={closeDrawer}
           />
           <div className="relative h-full w-72 max-w-[85vw] shadow-2xl">
@@ -113,7 +113,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               type="button"
               aria-label="Close navigation"
               onClick={closeDrawer}
-              className="absolute -right-12 top-4 rounded-lg border border-slate-700/80 bg-slate-900 p-2 text-slate-300 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              className="absolute -right-12 top-4 rounded-lg border border-slate-700 bg-slate-900 p-2 text-slate-200 transition hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
             >
               <X className="h-5 w-5" />
             </button>
@@ -124,7 +124,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       {/* Main Content Workspace Column */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* Unified Top Command Header */}
-        <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-800/80 bg-slate-950/95 px-4 sm:px-6">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-800/80 bg-[#0b0f1a] px-4 sm:px-6">
           <div className="flex items-center gap-3 min-w-0">
             {/* Mobile hamburger button */}
             <button
@@ -133,7 +133,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               aria-label="Open navigation menu"
               aria-expanded={drawerOpen}
               onClick={() => setDrawerOpen(true)}
-              className="rounded-lg border border-slate-800 bg-slate-900/80 p-2 text-slate-400 transition hover:border-slate-700 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 lg:hidden"
+              className="rounded-lg border border-slate-700 bg-[#121826] p-2 text-slate-300 transition hover:border-slate-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 lg:hidden"
             >
               <Menu className="h-4 w-4" />
             </button>
@@ -147,18 +147,18 @@ export default function AppShell({ children }: { children: ReactNode }) {
             </div>
 
             {/* Breadcrumb Navigation */}
-            <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400">
-              <span className="text-slate-500">Ricoz</span>
-              <span className="text-slate-600">/</span>
-              <span className="text-slate-200 font-medium truncate">{breadcrumb}</span>
+            <div className="hidden sm:flex items-center gap-2 text-xs font-medium">
+              <span className="text-slate-400">Ricoz</span>
+              <span className="text-slate-400">/</span>
+              <span className="text-slate-100 font-semibold truncate">{breadcrumb}</span>
             </div>
           </div>
 
           {/* Right Header Status & Clerk Profile */}
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-400">
+            <div className="hidden sm:flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Operational</span>
+              <span>Plant 01 Operational</span>
             </div>
 
             <UserButton />

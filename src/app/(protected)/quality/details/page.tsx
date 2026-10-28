@@ -41,13 +41,13 @@ function IssuePicker() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-2xl font-semibold tracking-tight">Issue Details</h1>
-      <p className="mb-6 mt-1 text-sm text-slate-400">Choose an issue to view its details.</p>
+      <h1 className="text-2xl font-bold tracking-tight text-white">Issue Details</h1>
+      <p className="mb-6 mt-1 text-sm text-slate-300">Choose an issue to view its details.</p>
 
       <Input label="" aria-label="Search issues" icon={Search} placeholder="Search by issue or work order number…"
         value={search} onChange={(e) => setSearch(e.target.value)} />
 
-      <div className="mt-4 divide-y divide-slate-800 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+      <div className="mt-4 divide-y divide-slate-800 overflow-hidden rounded-xl border border-slate-800/90 bg-[#0c111e] shadow-xl">
         {issues.loading ? (
           <div className="flex justify-center p-12"><Spinner /></div>
         ) : issues.error ? (
@@ -57,9 +57,9 @@ function IssuePicker() {
         ) : (
           filtered.map((i) => (
             <Link key={i._id} href={`/quality/details?id=${i._id}`}
-              className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-800/50">
+              className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-800/40 transition">
               <div>
-                <p className="font-mono text-sm">{i.issueNumber}</p>
+                <p className="font-mono text-sm font-semibold text-slate-100">{i.issueNumber}</p>
                 <p className="text-xs text-slate-400">{i.workOrder?.workOrderNumber ?? "Deleted work order"}</p>
               </div>
               <Badge meta={findMeta(ISSUE_STATUSES, i.status)} />
@@ -74,8 +74,8 @@ function IssuePicker() {
 function Detail({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wider text-slate-500">{label}</dt>
-      <dd className="mt-1 text-sm text-slate-100">{children}</dd>
+      <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</dt>
+      <dd className="mt-1 text-sm font-medium text-slate-100">{children}</dd>
     </div>
   );
 }
@@ -83,8 +83,8 @@ function Detail({ label, children }: { label: string; children: ReactNode }) {
 function TextBlock({ label, text }: { label: string; text?: string }) {
   return (
     <div>
-      <h3 className="text-xs uppercase tracking-wider text-slate-500">{label}</h3>
-      <p className={`mt-1.5 whitespace-pre-wrap text-sm ${text ? "text-slate-200" : "text-slate-500"}`}>{text || "Nothing recorded."}</p>
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</h3>
+      <p className={`mt-1.5 whitespace-pre-wrap text-sm ${text ? "text-slate-200" : "text-slate-400 italic"}`}>{text || "Nothing recorded."}</p>
     </div>
   );
 }
@@ -162,7 +162,7 @@ function IssueDetails({ id }: { id: string }) {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/quality/issues" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white">
+      <Link href="/quality/issues" className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition">
         <ArrowLeft className="h-4 w-4" /> Back to quality issues
       </Link>
 
@@ -175,9 +175,9 @@ function IssueDetails({ id }: { id: string }) {
         </div>
       ) : (
         <>
-          <div className="mb-6 mt-3 flex flex-wrap items-start justify-between gap-4">
+          <div className="mb-6 mt-4 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="font-mono text-2xl font-semibold tracking-tight">{issue.issueNumber}</h1>
+              <h1 className="font-mono text-2xl font-bold tracking-tight text-white">{issue.issueNumber}</h1>
               <div className="mt-2 flex flex-wrap gap-2">
                 <Badge meta={findMeta(QUALITY_TYPES, issue.type)} />
                 <Badge meta={findMeta(SEVERITIES, issue.severity)} />
@@ -187,11 +187,11 @@ function IssueDetails({ id }: { id: string }) {
             {!editing && (
               <div className="flex gap-3">
                 <button onClick={() => setEditing(true)} disabled={workOrders.loading || products.loading}
-                  className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2.5 text-sm font-medium hover:bg-slate-800 disabled:opacity-60">
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-[#0f1523] px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-800 hover:text-white transition disabled:opacity-60">
                   <Pencil className="h-4 w-4" /> Edit
                 </button>
                 <button onClick={() => setConfirmOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-lg border border-red-500/40 px-4 py-2.5 text-sm font-medium text-red-300 hover:bg-red-500/10">
+                  className="inline-flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-300 hover:bg-red-500/20 transition">
                   <Trash2 className="h-4 w-4" /> Delete
                 </button>
               </div>
@@ -199,7 +199,7 @@ function IssueDetails({ id }: { id: string }) {
           </div>
 
           {editing ? (
-            <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
+            <div className="rounded-xl border border-slate-800/90 bg-[#0c111e] p-6 shadow-xl">
               <QualityIssueForm
                 submitLabel="Save changes"
                 initial={qualityIssueToForm(issue)}
@@ -211,15 +211,15 @@ function IssueDetails({ id }: { id: string }) {
             </div>
           ) : (
             <div className="space-y-6">
-              <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
-                <h2 className="text-sm font-medium text-slate-300">Change status</h2>
+              <section className="rounded-xl border border-slate-800/90 bg-[#0c111e] p-6 shadow-xl">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300">Change status</h2>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {ISSUE_STATUSES.map((s) => {
                     const current = s.value === issue.status;
                     return (
                       <button key={s.value} onClick={() => changeStatus(s.value)} disabled={current || savingStatus !== null}
-                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition disabled:cursor-not-allowed ${
-                          current ? "border-blue-500 bg-blue-500/10 text-blue-300" : "border-slate-700 text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+                        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed ${
+                          current ? "border-blue-500 bg-blue-500/15 text-blue-200" : "border-slate-700 bg-[#090d16] text-slate-300 hover:bg-slate-800 hover:text-white disabled:opacity-50"
                         }`}>
                         {savingStatus === s.value ? <Spinner className="h-3.5 w-3.5" /> : <span className={`h-2 w-2 rounded-full ${s.dot}`} />}
                         {s.label}
@@ -229,25 +229,25 @@ function IssueDetails({ id }: { id: string }) {
                 </div>
               </section>
 
-              <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
-                <h2 className="text-sm font-medium text-slate-300">Inspection result</h2>
+              <section className="rounded-xl border border-slate-800/90 bg-[#0c111e] p-6 shadow-xl">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300">Inspection result</h2>
                 <dl className="mt-4 grid grid-cols-3 gap-4 text-center">
-                  <div className="rounded-lg bg-slate-950 p-3">
-                    <dt className="text-xs text-slate-500">Inspected</dt>
-                    <dd className="mt-1 text-2xl font-semibold tabular-nums">{issue.quantityInspected}</dd>
+                  <div className="rounded-lg border border-slate-800/80 bg-[#090d16] p-4">
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">Inspected</dt>
+                    <dd className="mt-1 text-2xl font-bold tabular-nums text-white">{issue.quantityInspected}</dd>
                   </div>
-                  <div className="rounded-lg bg-slate-950 p-3">
-                    <dt className="text-xs text-slate-500">Passed</dt>
-                    <dd className="mt-1 text-2xl font-semibold tabular-nums text-emerald-400">{issue.quantityPassed}</dd>
+                  <div className="rounded-lg border border-slate-800/80 bg-[#090d16] p-4">
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">Passed</dt>
+                    <dd className="mt-1 text-2xl font-bold tabular-nums text-emerald-400">{issue.quantityPassed}</dd>
                   </div>
-                  <div className="rounded-lg bg-slate-950 p-3">
-                    <dt className="text-xs text-slate-500">Failed</dt>
-                    <dd className={`mt-1 text-2xl font-semibold tabular-nums ${issue.quantityFailed > 0 ? "text-red-400" : ""}`}>{issue.quantityFailed}</dd>
+                  <div className="rounded-lg border border-slate-800/80 bg-[#090d16] p-4">
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">Failed</dt>
+                    <dd className={`mt-1 text-2xl font-bold tabular-nums ${issue.quantityFailed > 0 ? "text-rose-400" : "text-slate-300"}`}>{issue.quantityFailed}</dd>
                   </div>
                 </dl>
                 {passRate !== null && (
                   <div className="mt-4">
-                    <div className="flex justify-between text-xs text-slate-400">
+                    <div className="flex justify-between text-xs font-medium text-slate-300">
                       <span>Pass rate</span><span>{passRate}%</span>
                     </div>
                     <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-800">
@@ -257,11 +257,11 @@ function IssueDetails({ id }: { id: string }) {
                 )}
               </section>
 
-              <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
+              <section className="rounded-xl border border-slate-800/90 bg-[#0c111e] p-6 shadow-xl">
                 <dl className="grid gap-6 sm:grid-cols-2">
-                  <Detail label="Work order">{issue.workOrder?.workOrderNumber ?? <span className="text-slate-500">Deleted</span>}</Detail>
+                  <Detail label="Work order">{issue.workOrder?.workOrderNumber ?? <span className="text-slate-400">Deleted</span>}</Detail>
                   <Detail label="Product">
-                    {issue.product ? <>{issue.product.name} <span className="font-mono text-xs text-slate-500">{issue.product.code}</span></> : "—"}
+                    {issue.product ? <>{issue.product.name} <span className="font-mono text-xs text-slate-400">({issue.product.code})</span></> : "—"}
                   </Detail>
                   <Detail label="Defect type">{issue.defectType || "—"}</Detail>
                   <Detail label="Inspector">{inspectorName(issue.inspector)}</Detail>

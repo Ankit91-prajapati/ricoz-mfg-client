@@ -80,7 +80,6 @@ export default function MaintenanceWorkOrdersPage() {
     [orders.items],
   );
 
-  // There is no users API: offer "me", plus whoever is already assigned on the order being edited.
   const assignees = useMemo<AssigneeOption[]>(() => {
     const list: AssigneeOption[] = [];
     if (user) list.push({ id: user._id, label: `Me (${user.username || user.email})` });
@@ -101,7 +100,7 @@ export default function MaintenanceWorkOrdersPage() {
         toast.success(`${values.maintenanceNumber} created`);
       }
       setModal(null);
-      orders.reload(); // reload so machine and assignee names come back populated
+      orders.reload();
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not save maintenance work order."));
     }
@@ -136,120 +135,205 @@ export default function MaintenanceWorkOrdersPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="ui-page-enter mx-auto max-w-7xl space-y-6">
+      {/* Header Deck */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Maintenance Work Orders</h1>
-          <p className="mt-1 text-sm text-slate-400">
-            {orders.loading ? "Loading…" : `${filtered.length} of ${orders.items.length} work orders`}
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-700 bg-[#121826] text-blue-400">
+              <Wrench className="h-4 w-4" />
+            </span>
+            <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">
+              Asset Reliability
+            </p>
+          </div>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            Maintenance Work Orders
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-300">
+            {orders.loading ? "Loading maintenance queue…" : `${filtered.length} of ${orders.items.length} maintenance orders scheduled`}
           </p>
         </div>
-        <div className="flex gap-3">
-          <button onClick={orders.reload} aria-label="Refresh"
-            className="rounded-lg border border-slate-700 p-2.5 text-slate-300 hover:bg-slate-800">
+
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={orders.reload}
+            disabled={orders.loading}
+            aria-label="Refresh orders"
+            title="Refresh orders"
+            className="rounded-lg border border-slate-700 bg-[#121826] p-2.5 text-slate-200 transition hover:border-slate-600 hover:bg-[#192235] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-50"
+          >
             <RefreshCw className={`h-4 w-4 ${orders.loading ? "animate-spin" : ""}`} />
           </button>
-          <button onClick={() => setModal("new")} disabled={!ready}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-60">
-            <Plus className="h-4 w-4" /> New Work Order
+          <button
+            onClick={() => setModal("new")}
+            disabled={!ready}
+            className="inline-flex min-h-9.5 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-xs transition hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:opacity-60"
+          >
+            <Plus className="h-4 w-4" /> New Maintenance Order
           </button>
         </div>
       </div>
 
-      <div className="mt-6">
-        <StatusFilterCards options={MAINTENANCE_STATUSES} counts={counts} active={statusFilter} onChange={setStatusFilter} />
+      {/* Filter Cards */}
+      <StatusFilterCards options={MAINTENANCE_STATUSES} counts={counts} active={statusFilter} onChange={setStatusFilter} />
+
+      {/* Filter and Search Bar */}
+      <div className="rounded-xl border border-slate-800 bg-[#0c111e] p-4">
+        <div className="grid gap-3 sm:grid-cols-[1fr_170px_170px]">
+          <Input
+            label=""
+            aria-label="Search maintenance"
+            icon={Search}
+            placeholder="Search by order number, maintenance title, or equipment code…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <Select
+            aria-label="Filter by priority"
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+          >
+            <option value="">All Priorities</option>
+            {MAINTENANCE_PRIORITIES.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </Select>
+          <Select
+            aria-label="Filter by type"
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+          >
+            <option value="">All Maintenance Types</option>
+            {MAINTENANCE_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </Select>
+        </div>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_170px_170px]">
-        <Input label="" aria-label="Search maintenance" icon={Search} placeholder="Search by number, title or machine…"
-          value={search} onChange={(e) => setSearch(e.target.value)} />
-        <Select aria-label="Filter by priority" value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
-          <option value="">All priorities</option>
-          {MAINTENANCE_PRIORITIES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
-        </Select>
-        <Select aria-label="Filter by type" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-          <option value="">All types</option>
-          {MAINTENANCE_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-        </Select>
-      </div>
-
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+      {/* Maintenance Data Table */}
+      <div className="overflow-hidden rounded-xl border border-slate-800 bg-[#0c111e] shadow-xl">
         {orders.loading ? (
-          <div className="flex justify-center p-16"><Spinner className="h-7 w-7" /></div>
+          <div className="flex flex-col items-center justify-center p-16 text-slate-300">
+            <Spinner className="h-7 w-7 text-blue-400" />
+            <p className="mt-3 text-xs font-medium">Loading maintenance records…</p>
+          </div>
         ) : orders.error ? (
           <div className="p-12 text-center">
-            <p className="text-red-400">{orders.error}</p>
-            <button onClick={orders.reload} className="mt-3 text-sm font-medium text-blue-400 hover:text-blue-300">Try again</button>
+            <p className="text-sm font-medium text-rose-400">{orders.error}</p>
+            <button
+              onClick={orders.reload}
+              className="mt-3 text-xs font-semibold text-blue-400 underline hover:text-blue-300"
+            >
+              Retry loading
+            </button>
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center p-16 text-center">
-            <Wrench className="h-10 w-10 text-slate-600" />
-            <p className="mt-4 text-slate-300">{orders.items.length ? "No work orders match your filters." : "No maintenance work orders yet."}</p>
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-800 bg-[#080d17] text-slate-400">
+              <Wrench className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 text-sm font-semibold text-white">No maintenance orders found</h3>
+            <p className="mt-1 text-xs text-slate-300">
+              {orders.items.length ? "No orders match your filter parameters." : "Zero open maintenance orders recorded on machinery fleet."}
+            </p>
             {!orders.items.length && ready && (
-              <button onClick={() => setModal("new")} className="mt-3 text-sm font-medium text-blue-400 hover:text-blue-300">
-                Create your first work order
+              <button
+                onClick={() => setModal("new")}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-500"
+              >
+                <Plus className="h-3.5 w-3.5" /> Create work order
               </button>
             )}
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-260 text-left text-sm">
-              <thead className="border-b border-slate-800 text-xs uppercase tracking-wider text-slate-400">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-slate-800 bg-[#080d17] text-xs font-semibold uppercase tracking-wider text-slate-300">
                 <tr>
-                  <th className="px-5 py-3 font-medium">Number</th>
-                  <th className="px-5 py-3 font-medium">Title</th>
-                  <th className="px-5 py-3 font-medium">Machine</th>
-                  <th className="px-5 py-3 font-medium">Type</th>
-                  <th className="px-5 py-3 font-medium">Priority</th>
-                  <th className="px-5 py-3 font-medium">Assigned</th>
-                  <th className="px-5 py-3 font-medium">Scheduled</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 text-right font-medium">Actions</th>
+                  <th className="px-5 py-3.5">Order Number</th>
+                  <th className="px-5 py-3.5">Task Description</th>
+                  <th className="px-5 py-3.5">Target Machine</th>
+                  <th className="px-5 py-3.5">Type</th>
+                  <th className="px-5 py-3.5">Priority</th>
+                  <th className="px-5 py-3.5">Assigned Specialist</th>
+                  <th className="px-5 py-3.5">Scheduled Execution</th>
+                  <th className="px-5 py-3.5">Status</th>
+                  <th className="px-5 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-slate-800/80">
                 {filtered.map((o) => {
                   const next = NEXT_STEP[o.status];
                   const overdue = isOverdue(o.scheduledDate, o.status);
                   return (
-                    <tr key={o._id} className="hover:bg-slate-800/40">
-                      <td className="px-5 py-3.5 font-mono text-xs text-slate-300">{o.maintenanceNumber}</td>
+                    <tr key={o._id} className="ui-table-row">
+                      <td className="px-5 py-3.5 font-mono font-bold text-blue-300">
+                        {o.maintenanceNumber}
+                      </td>
                       <td className="max-w-[220px] px-5 py-3.5">
-                        <p className="truncate font-medium" title={o.title}>{o.title}</p>
+                        <p className="truncate font-semibold text-white" title={o.title}>
+                          {o.title}
+                        </p>
                       </td>
                       <td className="px-5 py-3.5">
                         {o.machine ? (
                           <>
-                            {o.machine.name} <span className="font-mono text-xs text-slate-500">{o.machine.code}</span>
+                            <p className="font-semibold text-white">{o.machine.name}</p>
+                            <p className="font-mono text-xs text-blue-300">{o.machine.code}</p>
                           </>
                         ) : (
-                          <span className="text-slate-500">Deleted machine</span>
+                          <span className="text-slate-400 font-medium">Deleted machine reference</span>
                         )}
                       </td>
-                      <td className="px-5 py-3.5"><Badge meta={findMeta(MAINTENANCE_TYPES, o.type)} /></td>
-                      <td className="px-5 py-3.5"><Badge meta={findMeta(MAINTENANCE_PRIORITIES, o.priority)} /></td>
-                      <td className="px-5 py-3.5 text-slate-300">{o.assignedTo ? userName(o.assignedTo) : <span className="text-slate-500">Unassigned</span>}</td>
-                      <td className={`px-5 py-3.5 ${overdue ? "font-medium text-red-400" : "text-slate-300"}`}>
-                        {formatDate(o.scheduledDate)}
-                        {overdue && <span className="ml-2 text-xs">overdue</span>}
-                      </td>
-                      <td className="px-5 py-3.5"><Badge meta={findMeta(MAINTENANCE_STATUSES, o.status)} /></td>
                       <td className="px-5 py-3.5">
-                        <div className="flex items-center justify-end gap-1">
+                        <Badge meta={findMeta(MAINTENANCE_TYPES, o.type)} />
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <Badge meta={findMeta(MAINTENANCE_PRIORITIES, o.priority)} />
+                      </td>
+                      <td className="px-5 py-3.5 text-slate-200">
+                        {o.assignedTo ? userName(o.assignedTo) : <span className="text-slate-400 font-mono">—</span>}
+                      </td>
+                      <td className={`px-5 py-3.5 font-mono ${overdue ? "font-bold text-rose-400" : "text-slate-200"}`}>
+                        {formatDate(o.scheduledDate)}
+                        {overdue && <span className="ml-2 text-[10px] uppercase tracking-wider text-rose-400 bg-rose-500/10 px-1 rounded border border-rose-500/20 font-sans">overdue</span>}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <Badge meta={findMeta(MAINTENANCE_STATUSES, o.status)} />
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
                           {next && (
-                            <button onClick={() => advance(o, next.to)} disabled={busyId === o._id}
-                              className="mr-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-700 px-2.5 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-800 disabled:opacity-50">
+                            <button
+                              onClick={() => advance(o, next.to)}
+                              disabled={busyId === o._id}
+                              className="mr-1 inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-700 bg-[#121826] px-2.5 py-1.5 text-xs font-semibold text-slate-200 transition hover:border-slate-600 hover:text-white disabled:opacity-50"
+                            >
                               {busyId === o._id && <Spinner className="h-3 w-3" />}
                               {next.label}
                             </button>
                           )}
-                          <button onClick={() => setModal(o)} aria-label={`Edit ${o.maintenanceNumber}`}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white">
-                            <Pencil className="h-4 w-4" />
+                          <button
+                            onClick={() => setModal(o)}
+                            aria-label={`Edit ${o.maintenanceNumber}`}
+                            title="Edit maintenance order"
+                            className="rounded-lg border border-slate-700 bg-[#121826] p-1.5 text-slate-300 transition hover:border-slate-600 hover:text-white"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => setToDelete(o)} aria-label={`Delete ${o.maintenanceNumber}`}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-red-500/10 hover:text-red-400">
-                            <Trash2 className="h-4 w-4" />
+                          <button
+                            onClick={() => setToDelete(o)}
+                            aria-label={`Delete ${o.maintenanceNumber}`}
+                            title="Delete maintenance order"
+                            className="rounded-lg border border-slate-700 bg-[#121826] p-1.5 text-slate-300 transition hover:border-rose-600 hover:bg-rose-950/40 hover:text-rose-400"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </td>
@@ -278,8 +362,9 @@ export default function MaintenanceWorkOrdersPage() {
 
       <ConfirmDialog
         open={Boolean(toDelete)}
-        title="Delete maintenance work order?"
-        message={`${toDelete?.maintenanceNumber} will be permanently removed. This can't be undone.`}
+        title="Delete Maintenance Work Order?"
+        message={`${toDelete?.maintenanceNumber} will be permanently removed. Scheduled tasks will be cancelled.`}
+        confirmLabel="Confirm Deletion"
         loading={deleting}
         onConfirm={confirmDelete}
         onCancel={() => setToDelete(null)}

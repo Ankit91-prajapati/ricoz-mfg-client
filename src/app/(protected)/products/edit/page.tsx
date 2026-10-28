@@ -25,13 +25,13 @@ function ProductPicker() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-2xl font-semibold tracking-tight">Edit Product</h1>
-      <p className="mb-6 mt-1 text-sm text-slate-400">Choose the product you want to edit.</p>
+      <h1 className="text-2xl font-bold tracking-tight text-white">Edit Product</h1>
+      <p className="mb-6 mt-1 text-sm text-slate-300">Choose the product you want to edit.</p>
 
       <Input label="" aria-label="Search products" icon={Search} placeholder="Search by name or code…"
         value={search} onChange={(e) => setSearch(e.target.value)} />
 
-      <div className="mt-4 divide-y divide-slate-800 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+      <div className="mt-4 divide-y divide-slate-800 overflow-hidden rounded-xl border border-slate-800/90 bg-[#0c111e] shadow-xl">
         {loading ? (
           <div className="flex justify-center p-12"><Spinner /></div>
         ) : error ? (
@@ -41,12 +41,12 @@ function ProductPicker() {
         ) : (
           filtered.map((p) => (
             <Link key={p._id} href={`/products/edit?id=${p._id}`}
-              className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-800/50">
+              className="flex items-center justify-between px-5 py-3.5 hover:bg-slate-800/40 transition">
               <div>
-                <p className="font-medium">{p.name}</p>
+                <p className="font-semibold text-slate-100">{p.name}</p>
                 <p className="font-mono text-xs text-slate-400">{p.code}</p>
               </div>
-              <span className="text-xs text-slate-400">{productTypeLabel(p.type)}</span>
+              <span className="rounded-md border border-slate-700/80 bg-[#121826] px-2.5 py-1 text-xs font-medium text-slate-300">{productTypeLabel(p.type)}</span>
             </Link>
           ))
         )}
@@ -85,10 +85,10 @@ function EditProduct({ id }: { id: string }) {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/products" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white">
+      <Link href="/products" className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition">
         <ArrowLeft className="h-4 w-4" /> Back to products
       </Link>
-      <h1 className="mb-6 mt-3 text-2xl font-semibold tracking-tight">Edit Product</h1>
+      <h1 className="mb-6 mt-3 text-2xl font-bold tracking-tight text-white">Edit Product</h1>
 
       {loading ? (
         <div className="flex justify-center p-16"><Spinner className="h-7 w-7" /></div>

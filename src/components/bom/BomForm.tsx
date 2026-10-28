@@ -128,14 +128,14 @@ export default function BomForm({ initial, products, takenProductIds, submitLabe
 
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-sm font-medium text-slate-300">Components</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300">Components</h3>
           <button type="button" onClick={addItem}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-400 hover:text-blue-300">
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-400 hover:text-blue-300 transition">
             <Plus className="h-4 w-4" /> Add component
           </button>
         </div>
 
-        <div className="hidden gap-3 px-1 pb-1 text-xs uppercase tracking-wider text-slate-500 sm:grid sm:grid-cols-[1fr_110px_90px_36px]">
+        <div className="hidden gap-3 px-1 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400 sm:grid sm:grid-cols-[1fr_110px_90px_36px]">
           <span>Component</span><span>Quantity</span><span>Unit</span><span />
         </div>
 
@@ -158,23 +158,23 @@ export default function BomForm({ initial, products, takenProductIds, submitLabe
                   onChange={(e) => updateItem(item.key, "unit", e.target.value.toUpperCase())} error={err.unit} />
                 <button type="button" onClick={() => removeItem(item.key)} disabled={form.items.length === 1}
                   aria-label="Remove component"
-                  className="flex h-11 items-center justify-center rounded-lg text-slate-500 hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-500">
+                  className="flex h-11 items-center justify-center rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-600 transition">
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             );
           })}
         </div>
-        {errors.items && <p className="mt-2 text-xs text-red-400">{errors.items}</p>}
+        {errors.items && <p className="mt-2 text-xs text-rose-400">{errors.items}</p>}
       </div>
 
-      <label className="flex cursor-pointer items-center gap-3 text-sm text-slate-200">
+      <label className="flex cursor-pointer items-center gap-3 text-sm font-medium text-slate-200">
         <input type="checkbox" checked={form.isActive} onChange={(e) => update("isActive", e.target.checked)}
-          className="h-4 w-4 rounded border-slate-600 bg-slate-800 accent-blue-600" />
+          className="h-4 w-4 rounded border-slate-600 bg-[#090d16] accent-blue-600" />
         Active
       </label>
 
-      <div className="flex flex-col-reverse gap-3 border-t border-slate-800 pt-5 sm:flex-row sm:justify-end">
+      <div className="flex flex-col-reverse gap-3 border-t border-slate-800/80 pt-5 sm:flex-row sm:justify-end">
         <Button type="button" variant="outline" className="sm:w-auto sm:px-6" onClick={onCancel} disabled={submitting}>
           Cancel
         </Button>
