@@ -270,6 +270,53 @@ body {
   --tw-ring-offset-color: #020617;
 }
 
+/* -------------------------------------------------------------------------
+   CONCEPT C: BENTO GRID & SPATIAL GLASS UTILITIES
+   - Fine 1px technical borders, radial hover glow, hardware accelerated
+   ------------------------------------------------------------------------- */
+
+.bento-card {
+  position: relative;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-card:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 10px 30px -10px rgba(2, 6, 23, 0.9), 0 0 20px -5px rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+}
+
+.glow-panel {
+  position: relative;
+  background: radial-gradient(circle at 50% 0%, rgba(30, 58, 138, 0.25) 0%, rgba(15, 23, 42, 0.8) 75%);
+  border: 1px solid rgba(51, 65, 85, 0.6);
+}
+
+.glass-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(51, 65, 85, 0.6);
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .bento-card,
+  .bento-card:hover {
+    transition: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .ui-page-enter,
