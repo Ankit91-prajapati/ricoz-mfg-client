@@ -8,7 +8,7 @@ export default clerkMiddleware(
   },
   {
     frontendApiProxy: {
-      enabled: true,
+      enabled: false,
     },
   }
 );
