@@ -21,6 +21,6 @@ export const config = {
     '/(api|trpc)(.*)',
 
     // Required by Clerk
-    '/__clerk/:path*',
+     "/__clerk/(.*)",
   ],
 };
