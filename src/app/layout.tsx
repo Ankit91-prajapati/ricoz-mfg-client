@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Suspense } from "react";
+
 import { Toaster } from "react-hot-toast";
 import { ClerkProvider } from "@clerk/nextjs";
 
@@ -24,9 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={inter.variable}>
       <body className={`${inter.className} min-h-screen antialiased bg-slate-950 text-slate-100 theme-scrollbar`}>
-        <Suspense fallback={<div>Page is Loading</div>}>
+        
           <ClerkProvider publishableKey={clerkPublishableKey}>{children}</ClerkProvider>
-        </Suspense>
+    
 
         <Toaster
           position="top-right"
