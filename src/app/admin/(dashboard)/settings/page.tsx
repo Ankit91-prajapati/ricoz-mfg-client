@@ -38,20 +38,37 @@ export default function AdminSettingsPage() {
     checkConnectivity();
   }, []);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
+  const loadSettings = async () => {
+  try {
+    const st = await adminService.getSettings();
+    setPlantName(st.plantName);
+    setPlantCode(st.plantCode);
+    setContactEmail(st.contactEmail);
+  } catch {
+    toast.error("Could not load saved settings");
+  }
+};
 
-    // Honest notice: System settings persistence requires backend settings model
-    setTimeout(() => {
-      setIsSaving(false);
-      toast.error(
-        "Settings persistence API (`PUT /api/v1/settings/organization`) is not implemented on the backend. Changes held in local session only.",
-        { duration: 5000 }
-      );
-    }, 600);
-  };
+useEffect(() => {
+  loadSettings();
+}, []);
 
+const handleSaveProfile = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsSaving(true);
+  try {
+    const st = await adminService.saveSettings({ plantName, plantCode, contactEmail });
+    setPlantName(st.plantName);
+    setPlantCode(st.plantCode);
+    setContactEmail(st.contactEmail);
+    toast.success("Facility profile saved");
+  } catch (err: unknown) {
+    const er = err as { response?: { data?: { message?: string } }; message?: string };
+    toast.error(er.response?.data?.message || er.message || "Save failed");
+  } finally {
+    setIsSaving(false);
+  }
+};
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -79,10 +96,10 @@ export default function AdminSettingsPage() {
               Admin Access Gate
             </span>
             <span className="mt-1 block font-mono text-xs font-bold text-emerald-400">
-              DEVELOPMENT ISOLATED
+              CLERK + ROLE
             </span>
             <p className="mt-1 text-[11px] text-slate-400">
-              Controlled by <code className="text-slate-300">ADMIN_DEV_ENABLED</code>
+              Server enforces <code className="text-slate-300">role = admin</code>
             </p>
           </div>
 
@@ -91,10 +108,10 @@ export default function AdminSettingsPage() {
               Cookie Protection
             </span>
             <span className="mt-1 block font-mono text-xs font-bold text-purple-300">
-              HTTPONLY // SAME-SITE LAX
+              MANAGED BY CLERK
             </span>
             <p className="mt-1 text-[11px] text-slate-400">
-              Inaccessible to client JavaScript
+              Session cookies handled by Clerk
             </p>
           </div>
 
@@ -103,10 +120,10 @@ export default function AdminSettingsPage() {
               Session Signature
             </span>
             <span className="mt-1 block font-mono text-xs font-bold text-white">
-              HMAC-SHA256
+              CLERK JWT
             </span>
             <p className="mt-1 text-[11px] text-slate-400">
-              8-hour cryptographic lifespan
+              Short-lived, auto-refreshed token
             </p>
           </div>
         </div>
@@ -206,12 +223,10 @@ export default function AdminSettingsPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                setPlantName("Ricoz Manufacturing Facility #1");
-                setPlantCode("MFG-US-EAST");
-                setContactEmail("ops@ricoz.mfg");
-                toast("Reset to defaults", { icon: "↩️" });
-              }}
+            onClick={() => {
+  loadSettings();
+  toast("Reverted to saved values", { icon: "↩️" });
+}}
             >
               Reset
             </Button>

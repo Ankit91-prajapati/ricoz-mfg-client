@@ -1,115 +1,108 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import toast from "react-hot-toast";
-import AdminHeader from "./AdminHeader";
-import AdminSidebar from "./AdminSidebar";
-import { lockBodyScroll } from "@/components/ui/focus";
+import { UserButton } from "@clerk/nextjs";
+import { Menu, ShieldAlert, X } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState, type ReactNode } from "react";
+import { FullScreenSpinner } from "@/components/ui/Spinner";
+import { useAuth } from "@/hooks/useAuth";
+import { adminNav } from "./nav-config";
 
-interface Props {
-  children: ReactNode;
-}
-
-export default function AdminShell({ children }: Props) {
-  const router = useRouter();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [adminEmail, setAdminEmail] = useState<string>("admin@ricoz.mfg");
-  const drawerRef = useRef<HTMLDivElement>(null);
-
-  // Fetch admin session details client-side
-  useEffect(() => {
-    let active = true;
-    fetch("/api/admin/session")
-      .then((res) => {
-        if (!res.ok) throw new Error("Unauthenticated");
-        return res.json();
-      })
-      .then((data) => {
-        if (active && data.user?.email) {
-          setAdminEmail(data.user.email);
-        }
-      })
-      .catch(() => {
-        // Handled server-side by middleware redirect
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  // Lock scroll when mobile drawer is open
-  useEffect(() => {
-    if (!drawerOpen) return;
-    const releaseScroll = lockBodyScroll();
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setDrawerOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      releaseScroll();
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [drawerOpen]);
-
-  const handleLogout = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/logout", { method: "POST" });
-      if (res.ok) {
-        toast.success("Admin session terminated");
-        router.push("/admin/login");
-        router.refresh();
-      } else {
-        toast.error("Failed to sign out cleanly");
-      }
-    } catch {
-      toast.error("Network error during sign out");
-    }
-  }, [router]);
-
+function Nav({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
   return (
-    <div className="flex min-h-screen bg-[#06090f] text-slate-100">
-      {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-64 md:shrink-0 md:flex-col">
-        <div className="fixed inset-y-0 flex w-64 flex-col">
-          <AdminSidebar adminEmail={adminEmail} onLogout={handleLogout} />
+    <nav className="flex h-full w-64 flex-col border-r border-slate-800 bg-[#0a0f1a]">
+      <div className="flex h-16 shrink-0 items-center gap-3 px-5">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-purple-500/30 bg-purple-600/15 text-purple-400">
+          <ShieldAlert className="h-4 w-4" />
+        </span>
+        <div className="leading-tight">
+          <span className="block text-sm font-bold text-white">Ricoz Admin</span>
+          <span className="block font-mono text-[10px] uppercase text-purple-400">Console</span>
         </div>
       </div>
+      <ul className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
+        {adminNav.map(({ href, label, icon: Icon }) => {
+          const active = href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+          return (
+            <li key={href}>
+              <Link
+                href={href}
+                onClick={onNavigate}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${
+                  active
+                    ? "bg-purple-600/15 text-purple-300"
+                    : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
+                }`}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="space-y-3 border-t border-slate-800 px-5 py-4">
+        <Link href="/dashboard" className="block text-xs text-slate-400 hover:text-white">
+          ← Back to Ricoz app
+        </Link>
+        <UserButton showName />
+      </div>
+    </nav>
+  );
+}
 
-      {/* Mobile Drawer Backdrop & Sidebar */}
-      {drawerOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div
-            className="fixed inset-0 bg-black/75 backdrop-blur-xs transition-opacity"
-            onClick={() => setDrawerOpen(false)}
-            aria-hidden="true"
-          />
-          <div
-            ref={drawerRef}
-            className="fixed inset-y-0 left-0 flex w-64 flex-col shadow-2xl transition-transform"
-          >
-            <AdminSidebar
-              adminEmail={adminEmail}
-              onLogout={handleLogout}
-              onNavClick={() => setDrawerOpen(false)}
-            />
+export default function AdminShell({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth();
+  const [open, setOpen] = useState(false);
+
+  if (loading) return <FullScreenSpinner />;
+
+  if (user?.role !== "admin") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#06090f] px-4 text-center">
+        <ShieldAlert className="h-10 w-10 text-rose-400" />
+        <h1 className="mt-4 text-xl font-bold text-white">Administrator access required</h1>
+        <p className="mt-1 max-w-sm text-sm text-slate-400">
+          {user
+            ? `${user.email} does not have the admin role.`
+            : "We couldn't load your profile from the server."}
+        </p>
+        <Link href="/dashboard" className="mt-5 text-sm font-semibold text-purple-400 hover:text-purple-300">
+          Go to dashboard
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-[#06090f]">
+      <div className="hidden lg:block">
+        <Nav />
+      </div>
+      {open && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
+          <div className="relative h-full w-64">
+            <Nav onNavigate={() => setOpen(false)} />
+            <button
+              aria-label="Close menu"
+              onClick={() => setOpen(false)}
+              className="absolute -right-12 top-4 rounded-lg bg-slate-900 p-2 text-slate-200"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
         </div>
       )}
-
-      {/* Main Content Area */}
-      <div className="flex flex-1 flex-col md:pl-64">
-        <AdminHeader
-          adminEmail={adminEmail}
-          onLogout={handleLogout}
-          onMenuToggle={() => setDrawerOpen(true)}
-        />
-
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-7xl">{children}</div>
-        </main>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex h-14 shrink-0 items-center border-b border-slate-800 px-4 lg:hidden">
+          <button aria-label="Open menu" onClick={() => setOpen(true)} className="rounded-lg p-2 text-slate-300 hover:bg-slate-800">
+            <Menu className="h-5 w-5" />
+          </button>
+        </header>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-8">{children}</main>
       </div>
     </div>
   );

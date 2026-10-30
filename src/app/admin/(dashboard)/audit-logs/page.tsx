@@ -1,77 +1,117 @@
 "use client";
 
-import { AlertCircle, History, Terminal } from "lucide-react";
+import { ChevronLeft, ChevronRight, History, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import AdminEmptyState from "@/components/admin/AdminEmptyState";
+import AdminErrorState from "@/components/admin/AdminErrorState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import AdminStatusBadge from "@/components/admin/AdminStatusBadge";
+import Button from "@/components/ui/Button";
+import Spinner from "@/components/ui/Spinner";
+import { adminService, type AuditLogPage } from "@/services/admin.service";
+
+const selectCls =
+  "h-9.5 rounded-lg border border-slate-800 bg-[#0d131f] px-3 font-mono text-xs text-slate-300 focus:border-purple-500 focus:outline-none";
 
 export default function AdminAuditLogsPage() {
+  const [data, setData] = useState<AuditLogPage | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [action, setAction] = useState("");
+  const [outcome, setOutcome] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setData(await adminService.listAuditLogs({ page, limit: 20, action, outcome }));
+    } catch (err: unknown) {
+      setError((err as Error).message || "Failed to load audit logs.");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, action, outcome]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <AdminPageHeader
         title="Administrative Audit Trail"
-        description="Immutable record of security events, privilege adjustments, and configuration modifications."
+        description="Record of privilege adjustments and configuration modifications made in the admin console."
         breadcrumbs="Console / Audit Logs"
+        actions={
+          <Button variant="outline" size="sm" onClick={load} loading={loading} className="border-slate-800 bg-[#0c111e] text-slate-300">
+            <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Refresh
+          </Button>
+        }
       />
 
-      {/* Honest Backend Pipeline Notice */}
-      <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-5">
-        <div className="flex items-start gap-3.5">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/15 text-amber-400">
-            <AlertCircle className="h-5 w-5" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-amber-200">
-              Audit Logging Pipeline: Awaiting Dedicated Backend Collection
-            </h3>
-            <p className="mt-1 text-xs text-slate-300 leading-relaxed">
-              The Ricoz MFG Express backend does not currently have an audit log collection pipeline or MongoDB collection (<code className="text-amber-300">AuditLogModel</code>). Historical administrator activities, login attempts, and privilege modifications are not fabricated or simulated.
-            </p>
-          </div>
-        </div>
+      <div className="flex flex-wrap gap-2 rounded-xl border border-slate-800 bg-[#0c111e] p-4">
+        <select value={action} onChange={(e) => { setAction(e.target.value); setPage(1); }} className={selectCls}>
+          <option value="">All Actions</option>
+          <option value="ROLE_CHANGE">Role change</option>
+          <option value="SETTING_UPDATE">Setting update</option>
+          <option value="USER_DELETE">User delete</option>
+          <option value="LOGIN">Login</option>
+        </select>
+        <select value={outcome} onChange={(e) => { setOutcome(e.target.value); setPage(1); }} className={selectCls}>
+          <option value="">All Outcomes</option>
+          <option value="SUCCESS">Success</option>
+          <option value="FAILURE">Failure</option>
+        </select>
       </div>
 
-      {/* Technical Specifications for Backend Requirement */}
-      <div className="rounded-xl border border-slate-800 bg-[#0c111e] p-6 shadow-sm">
-        <div className="flex items-center gap-2">
-          <Terminal className="h-4 w-4 text-purple-400" />
-          <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-purple-300">
-            Backend Integration Specification
-          </h2>
+      {loading && !data ? (
+        <div className="flex justify-center rounded-xl border border-slate-800 bg-[#0c111e] p-16">
+          <Spinner className="h-8 w-8 text-purple-400" />
         </div>
-        <p className="mt-1 text-xs text-slate-400">
-          The following endpoint and data schema are required to enable persistent audit logging:
-        </p>
-
-        <div className="mt-4 rounded-lg border border-slate-800/80 bg-[#080d17] p-4 font-mono text-xs text-slate-300 space-y-2">
-          <p className="text-purple-400">
-            <strong>Endpoint:</strong> GET /api/v1/audit-logs (Paginated, filtered by action &amp; actor)
-          </p>
-          <p className="text-slate-400">
-            <strong>Expected Document Schema:</strong>
-          </p>
-          <pre className="text-[11px] text-slate-300 overflow-x-auto p-2 bg-[#050810] rounded border border-slate-900">
-{`interface AuditLogRecord {
-  _id: string;
-  timestamp: string;          // ISO 8601 UTC
-  actorId: string;            // Admin User ID
-  actorEmail: string;         // Admin Email
-  action: "LOGIN" | "ROLE_CHANGE" | "USER_DELETE" | "SETTING_UPDATE";
-  targetResource: string;     // e.g. "User:670fa93b..."
-  outcome: "SUCCESS" | "FAILURE";
-  ipAddress?: string;         // Anonymized IP
-  metadata?: Record<string, unknown>;
-}`}
-          </pre>
+      ) : error ? (
+        <AdminErrorState title="Audit Logs Unreachable" message={error} onRetry={load} />
+      ) : !data || data.logs.length === 0 ? (
+        <AdminEmptyState icon={History} title="No Audit Events" description="No administrative events match the current filters yet." />
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-slate-800 bg-[#0c111e]">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-slate-800 bg-[#080d17] font-mono uppercase tracking-wider text-slate-400">
+                <tr>
+                  <th className="px-4 py-3">Time</th>
+                  <th className="px-4 py-3">Actor</th>
+                  <th className="px-4 py-3">Action</th>
+                  <th className="px-4 py-3">Target</th>
+                  <th className="px-4 py-3">Outcome</th>
+                  <th className="px-4 py-3">Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 font-mono">
+                {data.logs.map((l) => (
+                  <tr key={l._id} className="hover:bg-[#0e1424]">
+                    <td className="whitespace-nowrap px-4 py-3 text-slate-400">{new Date(l.timestamp).toLocaleString()}</td>
+                    <td className="px-4 py-3 text-slate-200">{l.actorEmail}</td>
+                    <td className="px-4 py-3"><AdminStatusBadge variant="admin">{l.action}</AdminStatusBadge></td>
+                    <td className="px-4 py-3 text-slate-400">{l.targetResource}</td>
+                    <td className="px-4 py-3">
+                      <AdminStatusBadge variant={l.outcome === "SUCCESS" ? "success" : "danger"}>{l.outcome}</AdminStatusBadge>
+                    </td>
+                    <td className="max-w-xs truncate px-4 py-3 text-[11px] text-slate-500">{l.metadata ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex items-center justify-between border-t border-slate-800 bg-[#080d17] px-4 py-2.5">
+            <span className="font-mono text-[11px] text-slate-400">{data.total} events · page {data.page} of {Math.max(1, data.pages)}</span>
+            <div className="flex gap-1">
+              <Button variant="ghost" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}><ChevronLeft className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="sm" disabled={page >= data.pages} onClick={() => setPage((p) => p + 1)}><ChevronRight className="h-4 w-4" /></Button>
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* Clean Truthful Empty State */}
-      <AdminEmptyState
-        icon={History}
-        title="Zero Audit Events Recorded"
-        description="No historical administrative log entries are stored in the active database. Once the backend pipeline is connected, security audit entries will stream here in real time."
-      />
+      )}
     </div>
   );
 }

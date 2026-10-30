@@ -80,16 +80,24 @@ export default function AdminUsersPage() {
     });
   }, [users, search, roleFilter, statusFilter]);
 
-  const handleConfirmRoleChange = () => {
-    if (!roleChangeTarget) return;
+  const [changingRole, setChangingRole] = useState(false);
 
-    // Honest check: Inform the admin that backend persistence for role mutation is not exposed
-    toast.error(
-      "Role mutation API endpoint (`PATCH /api/v1/users/:id/role`) is awaiting backend implementation. Privilege change not persisted.",
-      { duration: 5000 }
-    );
+const handleConfirmRoleChange = async () => {
+  if (!roleChangeTarget) return;
+  const nextRole = roleChangeTarget.role === "admin" ? "user" : "admin";
+  setChangingRole(true);
+  try {
+    const updated = await adminService.updateUserRole(roleChangeTarget._id, nextRole);
+    setUsers((prev) => prev.map((u) => (u._id === updated._id ? { ...u, role: updated.role } : u)));
+    toast.success(`${updated.email} is now ${updated.role === "admin" ? "an administrator" : "a standard user"}`);
     setRoleChangeTarget(null);
-  };
+  } catch (err: unknown) {
+    const e = err as { response?: { data?: { message?: string } }; message?: string };
+    toast.error(e.response?.data?.message || e.message || "Role change failed");
+  } finally {
+    setChangingRole(false);
+  }
+};
 
   return (
     <div className="space-y-6">
@@ -332,18 +340,19 @@ export default function AdminUsersPage() {
       )}
 
       {/* Role Mutation Confirmation Dialog */}
-      <ConfirmDialog
-        open={Boolean(roleChangeTarget)}
-        title="Administrative Privilege Modification"
-        message={
-          roleChangeTarget
-            ? `Are you sure you want to modify privilege level for "${roleChangeTarget.email}" (${roleChangeTarget.role})? Note that the backend role modification endpoint is not yet connected.`
-            : ""
-        }
-        confirmLabel="Simulate Change"
-        onConfirm={handleConfirmRoleChange}
-        onCancel={() => setRoleChangeTarget(null)}
-      />
+     <ConfirmDialog
+  open={Boolean(roleChangeTarget)}
+  title="Administrative Privilege Modification"
+  message={
+    roleChangeTarget
+      ? `Change "${roleChangeTarget.email}" from ${roleChangeTarget.role} to ${roleChangeTarget.role === "admin" ? "user" : "admin"}?`
+      : ""
+  }
+  loading={changingRole}
+  confirmLabel="Confirm Change"
+  onConfirm={handleConfirmRoleChange}
+  onCancel={() => setRoleChangeTarget(null)}
+/>
     </div>
   );
 }

@@ -1,62 +1,55 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
-import { NextResponse, type NextRequest, type NextFetchEvent } from "next/server";
-import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "./lib/adminSession";
+import { NextResponse } from "next/server";
 
-const hasClerkKey = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
-
-const clerkHandler = hasClerkKey
-  ? clerkMiddleware(async (auth, req) => {
-      const pathname = req.nextUrl.pathname;
-
-      if (
-        pathname === "/dashboard" ||
-        pathname.startsWith("/dashboard/")
-      ) {
-        const { isAuthenticated, redirectToSignIn } = await auth();
-
-        if (!isAuthenticated) {
-          return redirectToSignIn();
-        }
-      }
-    })
-  : null;
-
-export default async function middleware(req: NextRequest, evt: NextFetchEvent) {
+export default clerkMiddleware(async (auth, req) => {
+  const { isAuthenticated, redirectToSignIn } = await auth();
   const pathname = req.nextUrl.pathname;
 
-  // 1. Isolated Admin Console route protection
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    const adminToken = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
-    const session = await verifyAdminSessionToken(adminToken);
+  // Logged-in user landing page -> dashboard
+  if (pathname === "/" && isAuthenticated) {
+    return NextResponse.redirect(
+      new URL("/dashboard", req.url)
+    );
+  }
 
-    if (pathname === "/admin/login") {
-      if (session) {
-        return NextResponse.redirect(new URL("/admin", req.url));
-      }
-      return NextResponse.next();
-    }
-
-    if (!session) {
-      const loginUrl = new URL("/admin/login", req.url);
-      return NextResponse.redirect(loginUrl);
+  // Logged-in admin opening login page -> admin panel
+  if (pathname.startsWith("/admin/login")) {
+    if (isAuthenticated) {
+      return NextResponse.redirect(
+        new URL("/admin", req.url)
+      );
     }
 
     return NextResponse.next();
   }
 
-  // 2. Existing application and Clerk middleware
-  if (!clerkHandler) {
-    return NextResponse.next();
+  // Protect dashboard
+  if (pathname.startsWith("/dashboard")) {
+    if (!isAuthenticated) {
+      return redirectToSignIn({
+        returnBackUrl: req.url,
+      });
+    }
   }
-  return clerkHandler(req, evt);
-}
+
+  // Protect admin
+  if (
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/")
+  ) {
+    if (!isAuthenticated) {
+      return NextResponse.redirect(
+        new URL("/admin/login", req.url)
+      );
+    }
+  }
+
+  return NextResponse.next();
+});
 
 export const config = {
   matcher: [
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    '/(api|trpc)(.*)',
-
-    // Required by Clerk
-    '/__clerk/:path*',
+    "/((?!_next|.*\\..*).*)",
+    "/(api|trpc)(.*)",
   ],
 };

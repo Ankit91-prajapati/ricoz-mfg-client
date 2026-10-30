@@ -251,14 +251,14 @@ export default function AdminOverviewPage() {
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-300">Admin Session Gate</span>
                 <span className="inline-flex items-center gap-1 font-mono text-[11px] font-semibold text-purple-300">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> ISOLATED DEV
+                  <CheckCircle2 className="h-3.5 w-3.5" /> CLERK + ROLE
                 </span>
               </div>
               <p className="mt-1.5 font-mono text-[11px] text-slate-500">
-                Token: HMAC-SHA256 (HttpOnly)
+                Auth: Clerk session + server role check
               </p>
               <p className="mt-1 text-[11px] text-slate-400">
-                Duration: 8h session lifespan
+                Role: admin required on /admin/*
               </p>
             </div>
           </div>
@@ -288,7 +288,7 @@ export default function AdminOverviewPage() {
           <AdminEmptyState
             icon={History}
             title="No Administrative Activity Recorded"
-            description="Audit logging pipeline is awaiting dedicated backend persistence. Administrative changes in development are held in memory."
+            description="Audit logging pipeline is awaiting dedicated backend persistence."
           />
         </div>
       </div>
