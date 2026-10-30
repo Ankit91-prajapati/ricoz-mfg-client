@@ -3,12 +3,18 @@ import AdminShell from "@/components/admin/AdminShell";
 import { FullScreenSpinner } from "@/components/ui/Spinner";
 import { AuthProvider } from "@/context/AuthContext";
 
-export default function AdminDashboardLayout({ children }: { children: ReactNode }) {
+export const instant = false;
+
+export default function AdminDashboardLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
-    <Suspense fallback={<FullScreenSpinner />}>
-      <AuthProvider>
+    <AuthProvider>
+      <Suspense fallback={<FullScreenSpinner />}>
         <AdminShell>{children}</AdminShell>
-      </AuthProvider>
-    </Suspense>
+      </Suspense>
+    </AuthProvider>
   );
 }
