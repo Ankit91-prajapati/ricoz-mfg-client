@@ -42,7 +42,7 @@ export default function ProductionPlansPage() {
   const [deleting, setDeleting] = useState(false);
 
   const ready = !plans.loading && !products.loading;
-
+ //
   const counts = useMemo(() => {
     const map: Record<string, number> = {};
     plans.items.forEach((p) => (map[p.status] = (map[p.status] ?? 0) + 1));
