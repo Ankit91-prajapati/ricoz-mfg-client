@@ -282,3 +282,8 @@
     transform: none !important;
   }
 }
+
+.cl-userButtonOuterIdentifier {
+  color: #fff ;
+  font-weight: 500 ;
+}

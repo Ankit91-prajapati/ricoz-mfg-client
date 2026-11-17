@@ -47,7 +47,7 @@ function Nav({ onNavigate }: { onNavigate?: () => void }) {
         <Link href="/dashboard" className="block text-xs text-slate-400 hover:text-white">
           ← Back to Ricoz app
         </Link>
-        <UserButton showName />
+        <UserButton showName  />
       </div>
     </nav>
   );
